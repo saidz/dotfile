@@ -1,9 +1,23 @@
 #!/bin/bash
 
+########## Params setup
+
 USER=`whoami`
 ROOT=`pwd`
 ZSHPATH=`which zsh`
 SUBLIMEPATH=${SUBLIMEPATH:="$HOME/Library/Application Support/Sublime Text 2"}
+
+## get the real path of install.sh
+SOURCE="${BASH_SOURCE[0]}"
+# resolve $SOURCE until the file is no longer a symlink
+while [ -L "$SOURCE" ]; do
+  APP_PATH="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  # if $SOURCE was a relative symlink, we need to resolve it relative to the path
+  # where the symlink file was located
+  [[ $SOURCE != /* ]] && SOURCE="$APP_PATH/$SOURCE"
+done
+APP_PATH="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 #none         = "\033[0m"
 #black        = "\033[0;30m"
@@ -42,6 +56,17 @@ function is_file_exists(){
 function is_dir_exists(){
   local d="$1"
   [[ -d "${d}" ]] && return 0 || return 1
+}
+
+function lnif(){
+  if [ -e "$1" ]; then
+    info "Linking $1 to $2"
+    if ( ! is_dir_exists `dirname "$2"` ); then
+      mkdir -p `dirname "$2"`
+    fi;
+    rm -rf "$2"
+    ln -s "$1" "$2"
+  fi;
 }
 
 function step(){
@@ -190,6 +215,12 @@ function install_zsh(){
   info "linking ${ROOT}/zsh/oh-my-zsh to ~/.oh-my-zsh"
   ln -s ${ROOT}/zsh/oh-my-zsh ~/.oh-my-zsh
 
+  info "linking ${ROOT}/zsh/zsh.alias to ~/.zsh.alias"
+  ln -s ${ROOT}/zsh/zsh.alias ~/.zsh.alias
+
+  info "linking ${ROOT}/zsh/zsh.paths to ~/.zsh.paths"
+  ln -s ${ROOT}/zsh/zsh.paths ~/.zsh.paths
+
   info "linking ${ROOT}/zsh/zshrc to ~/.zshrc";
   ln -s ${ROOT}/zsh/zshrc ~/.zshrc
 
@@ -206,6 +237,19 @@ function install_zsh(){
   source ~/.zshrc
 }
 
+function install_vscode() {
+  local vscode_path="$HOME/Library/Application Support/Code"
+
+  step "Installing vscode configs ..."
+
+  mkdir -p "$vscode_path/User"
+
+  lnif "$APP_PATH/vscode/settings.json" \
+       "$vscode_path/User/settings.json"
+
+  success "Successfully installed vscode configs."
+}
+
 if [ $# = 0 ]; then
   usage
 else
@@ -216,6 +260,7 @@ else
         install_gitconfig
         install_astylerc
         install_sublime
+        install_vscode
         install_zsh
         ;;
       vimrc)
@@ -232,6 +277,9 @@ else
         ;;
       zsh)
         install_zsh
+        ;;
+      vscode)
+        install_vscode
         ;;
       *)
         err "Invalid params ${arg}"
