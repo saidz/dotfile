@@ -210,6 +210,9 @@ function install_zsh(){
 
   info "Installing zsh and oh-my-zsh......"
   rm -rf ~/.oh-my-zsh
+  rm -rf ~/.zhs.alias
+  rm -rf ~/.zhs.paths
+  rm -rf ~/.zhs.nvm
   rm -rf ~/.zshrc
 
   info "linking ${ROOT}/zsh/oh-my-zsh to ~/.oh-my-zsh"
@@ -220,6 +223,9 @@ function install_zsh(){
 
   info "linking ${ROOT}/zsh/zsh.paths to ~/.zsh.paths"
   ln -s ${ROOT}/zsh/zsh.paths ~/.zsh.paths
+
+  info "linking ${ROOT}/zsh/zsh.nvm to ~/.zsh.nvm"
+  ln -s ${ROOT}/zsh/zsh.nvm ~/.zsh.nvm
 
   info "linking ${ROOT}/zsh/zshrc to ~/.zshrc";
   ln -s ${ROOT}/zsh/zshrc ~/.zshrc
